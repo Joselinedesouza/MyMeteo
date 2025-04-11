@@ -6,36 +6,41 @@ import "../App.css";
 //Devi schiacciare due volte la freccia aggiorna per far vedere tutto correttamente!
 //Sto impazzendo ma non riesco a capire!!! se magari nel feedback mi lasci la soluzione ti sarei grata
 
-const cities = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Palermo"];
-const apiKey = "eb293465a8757a7806a5455596a3e064";
+const cities = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Palermo"]; //Elenco dell città
+const apiKey = "eb293465a8757a7806a5455596a3e064"; // La mia chiave per usare l'API
 
-const images = ["/images/sunny.jpg", "/images/rainy.jpg", "/images/cloudy.jpg"];
+const images = ["/images/sunny.jpg", "/images/rainy.jpg", "/images/cloudy.jpg"]; //Sfondi casuali da usare nella pagina
 
 const Home = () => {
-  const [weatherList, setWeatherList] = useState([]);
-  const [myWeather, setMyWeather] = useState(null);
-  const [locationError, setLocationError] = useState(null);
-  const [backgroundImage, setBackgroundImage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [weatherList, setWeatherList] = useState([]); //Meteo delle città
+  const [myWeather, setMyWeather] = useState(null); // Meteo della posizione dell'utente
+  const [locationError, setLocationError] = useState(null); //Errore se la posizione non è disponibile
+  const [backgroundImage, setBackgroundImage] = useState(""); // Immagine di sfondo
+  const [loading, setLoading] = useState(true); // Mostra un loader
+  const [isLoaded, setIsLoaded] = useState(false); // Fa capire se l'immagine di sfondo è caricata
+
+  //Qui monto il componente
+  //Sceglie un'immagine casuale
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * images.length);
     const imageUrl = images[randomIndex];
 
     const img = new Image();
+    //pre-carica l'immagine
     img.onload = () => {
       setBackgroundImage(imageUrl);
+      // quando è pronta imposta lo sfondo è ci dice che è loaded
       setIsLoaded(true);
     };
     img.src = imageUrl;
   }, []);
 
   useEffect(() => {
-    const cachedMyWeather = localStorage.getItem("myWeather");
+    const cachedMyWeather = localStorage.getItem("myWeather"); //provo a caricare il meteo salvato nel localeStorage
     if (cachedMyWeather) {
       setMyWeather(JSON.parse(cachedMyWeather));
     }
-
+    //Ottengo la posizione attuale
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;

@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
+import "../App.css";
 const Navbar = () => {
   const [city, setCity] = useState("");
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-2">
       <div className="container-fluid">
         <Link className="navbar-brand" to="/">
-          App Meteo
+          YouMeteo
         </Link>
         <div className="d-flex">
           <input
