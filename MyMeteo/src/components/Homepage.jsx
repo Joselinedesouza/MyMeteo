@@ -1,46 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../App.css";
-
 //Stefano come vedrai mi risulta un problema quando aggiorno tramite il browser la pagina!
 //Devi schiacciare due volte la freccia aggiorna per far vedere tutto correttamente!
 //Sto impazzendo ma non riesco a capire!!! se magari nel feedback mi lasci la soluzione ti sarei grata
 
-const cities = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Palermo"]; //Elenco dell città
+// Elenco delle città
+const cities = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Palermo"];
 const apiKey = "eb293465a8757a7806a5455596a3e064"; // La mia chiave per usare l'API
 
-const images = ["/images/sunny.jpg", "/images/rainy.jpg", "/images/cloudy.jpg"]; //Sfondi casuali da usare nella pagina
+const images = ["/images/sunny.jpg", "/images/rainy.jpg", "/images/cloudy.jpg"]; // Sfondi casuali da usare nella pagina
 
 const Home = () => {
-  const [weatherList, setWeatherList] = useState([]); //Meteo delle città
+  const [weatherList, setWeatherList] = useState([]); // Meteo delle città
   const [myWeather, setMyWeather] = useState(null); // Meteo della posizione dell'utente
-  const [locationError, setLocationError] = useState(null); //Errore se la posizione non è disponibile
+  const [locationError, setLocationError] = useState(null); // Errore se la posizione non è disponibile
   const [backgroundImage, setBackgroundImage] = useState(""); // Immagine di sfondo
   const [loading, setLoading] = useState(true); // Mostra un loader
   const [isLoaded, setIsLoaded] = useState(false); // Fa capire se l'immagine di sfondo è caricata
 
-  //Qui monto il componente
-  //Sceglie un'immagine casuale
+  // Qui monto il componente
+  // Sceglie un'immagine casuale
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * images.length);
     const imageUrl = images[randomIndex];
 
     const img = new Image();
-    //pre-carica l'immagine
+    // pre-carica l'immagine
     img.onload = () => {
       setBackgroundImage(imageUrl);
-      // quando è pronta imposta lo sfondo è ci dice che è loaded
+      // quando è pronta imposta lo sfondo e ci dice che è loaded
       setIsLoaded(true);
     };
     img.src = imageUrl;
   }, []);
 
+  // Caricamento meteo della posizione dell'utente
   useEffect(() => {
-    const cachedMyWeather = localStorage.getItem("myWeather"); //provo a caricare il meteo salvato nel localeStorage
+    const cachedMyWeather = localStorage.getItem("myWeather"); // provo a caricare il meteo salvato nel localeStorage
     if (cachedMyWeather) {
       setMyWeather(JSON.parse(cachedMyWeather));
     }
-    //Ottengo la posizione attuale
+
+    // Ottengo la posizione attuale
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -64,45 +66,46 @@ const Home = () => {
     );
   }, []);
 
+  // Caricamento meteo delle città principali
   useEffect(() => {
     const cachedWeather = localStorage.getItem("weatherList");
     if (cachedWeather) {
       setWeatherList(JSON.parse(cachedWeather));
       setLoading(false);
+    } else {
+      const fetchData = () => {
+        const requests = cities.map((city) =>
+          fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
+          )
+            .then((res) => res.json())
+            .then((data) => ({
+              name: city,
+              temp: data.main.temp,
+              description: data.weather[0].description,
+              icon: data.weather[0].icon,
+            }))
+            .catch(() => ({
+              name: city,
+              error: "Errore nel caricamento",
+            }))
+        );
+
+        Promise.all(requests).then((results) => {
+          setWeatherList(results);
+          localStorage.setItem("weatherList", JSON.stringify(results));
+          setLoading(false);
+        });
+      };
+
+      fetchData();
     }
-
-    const fetchData = () => {
-      const requests = cities.map((city) =>
-        fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
-        )
-          .then((res) => res.json())
-          .then((data) => ({
-            name: city,
-            temp: data.main.temp,
-            description: data.weather[0].description,
-            icon: data.weather[0].icon,
-          }))
-          .catch(() => ({
-            name: city,
-            error: "Errore nel caricamento",
-          }))
-      );
-
-      Promise.all(requests).then((results) => {
-        setWeatherList(results);
-        localStorage.setItem("weatherList", JSON.stringify(results));
-        setLoading(false);
-      });
-    };
-
-    fetchData();
   }, []);
 
   return (
     <div
       style={{
-        backgroundImage: isLoaded ? `url(${backgroundImage})` : "none",
+        backgroundImage: `url(${backgroundImage})`,
         backgroundColor: isLoaded ? "transparent" : "#f0f0f0",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -112,7 +115,7 @@ const Home = () => {
     >
       {isLoaded ? (
         <div className="container mt-2">
-          <h1 className="text-center mb-4 text-white ">
+          <h1 className="text-center mb-4 text-white">
             Meteo delle principali città
           </h1>
 
