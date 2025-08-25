@@ -2,61 +2,114 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "../App.css";
 
+// immagini per lo sfondo dinamico
+import cloud from "../assets/cloud.jpg";
+import rain from "../assets/rain.jpg";
+import snow from "../assets/snow.jpg";
+import sunny from "../assets/sunny.jpg";
+
 const apiKey = "eb293465a8757a7806a5455596a3e064";
+
+// mappa icona -> immagine
+const getWeatherBgByIcon = (icon) => {
+  if (!icon) return cloud;
+  const group = icon.slice(0, 2); // "01","02","03","04","09","10","11","13","50"
+  switch (group) {
+    case "01":
+      return sunny; // sereno
+    case "02":
+    case "03":
+    case "04":
+      return cloud; // nuvole
+    case "09":
+    case "10":
+    case "11":
+      return rain; // pioggia/temporale
+    case "13":
+      return snow; // neve
+    default:
+      return cloud;
+  }
+};
 
 const Meteo = () => {
   const { city } = useParams();
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [backgroundImage, setBackgroundImage] = useState("");
 
+  // Carica dati meteo per la città
   useEffect(() => {
-    fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
-    )
-      .then((res) => {
+    const fetchWeather = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+            city || ""
+          )}&appid=${apiKey}&units=metric&lang=it`
+        );
         if (!res.ok) throw new Error("Errore nel recupero dati");
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
         setWeatherData(data);
+      } catch (err) {
+        setError(err?.message || "Si è verificato un errore");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+      }
+    };
+    fetchWeather();
   }, [city]);
 
-  useEffect(() => {
-    const cityLower = city.toLowerCase();
-    console.log(`Trying to load image for: /images/cities/${cityLower}.jpg`);
-    const img = new Image();
-    img.onload = () => setBackgroundImage(`/images/cities/${cityLower}.jpg`);
-    img.onerror = () => setBackgroundImage("/images/default.jpg");
-    img.src = `/images/cities/${cityLower}.jpg`;
-  }, [city]);
+  // sfondo dinamico in base all'icona
+  const bgImage = getWeatherBgByIcon(weatherData?.weather?.[0]?.icon);
 
   return (
     <div
       style={{
-        backgroundImage: `url(${backgroundImage})`,
+        backgroundImage: `url(${bgImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         minHeight: "100vh",
         paddingTop: "5rem",
         color: "white",
         textAlign: "center",
+        position: "relative",
       }}
     >
-      <div className="container">
+      {/* overlay per leggibilità */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))",
+        }}
+      />
+
+      <div
+        className="container  bg-opacity-50 rounded p-4"
+        style={{ position: "relative" }}
+      >
         <h1 className="mb-4">{`Meteo a ${city}`}</h1>
 
-        {loading && <div className="spinner-border text-black" role="status" />}
-        {error && <p className="text-danger">{error}</p>}
+        {/* Loader */}
+        {loading && (
+          <div className="d-flex justify-content-center my-5">
+            <div className="spinner-border text-light" role="status" />
+          </div>
+        )}
 
-        {weatherData && (
+        {/* Errore */}
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+
+        {/* Dati meteo */}
+        {weatherData && !loading && !error && (
           <div
             className="card mx-auto shadow-lg"
             style={{
@@ -68,7 +121,7 @@ const Meteo = () => {
             }}
           >
             <img
-              src={`http://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
+              src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
               className="card-img-top"
               alt={weatherData.weather[0].description}
               style={{
@@ -78,14 +131,14 @@ const Meteo = () => {
                 objectFit: "cover",
               }}
             />
-            <div className="card-body text-black">
+            <div className="card-body text-white">
               <h5
                 className="card-title"
                 style={{ fontSize: "2rem", fontWeight: "bold" }}
               >
-                {Math.round(weatherData.main.temp - 273.15)}°C
+                {Math.round(weatherData.main.temp)}°C
               </h5>
-              <p className="card-text ">
+              <p className="card-text text-capitalize">
                 <strong>Condizione:</strong>{" "}
                 {weatherData.weather[0].description}
               </p>

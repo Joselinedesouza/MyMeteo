@@ -1,186 +1,277 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../App.css";
-//Stefano come vedrai mi risulta un problema quando aggiorno tramite il browser la pagina!
-//Devi schiacciare due volte la freccia aggiorna per far vedere tutto correttamente!
-//Sto impazzendo ma non riesco a capire!!! se magari nel feedback mi lasci la soluzione ti sarei grata
+import meteo from "../assets/Meteogif.1.gif";
+import cloud from "../assets/cloud.jpg";
+import rain from "../assets/rain.jpg";
+import snow from "../assets/snow.jpg";
+import sunny from "../assets/sunny.jpg";
 
-// Elenco delle città
-const cities = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Palermo"];
-const apiKey = "eb293465a8757a7806a5455596a3e064"; // La mia chiave per usare l'API
+const BATCH_SIZE = 6;
+const CACHE_DURATION = 10 * 60 * 1000;
+const apiKey = "eb293465a8757a7806a5455596a3e064";
 
-const images = ["/images/sunny.jpg", "/images/rainy.jpg", "/images/cloudy.jpg"]; // Sfondi casuali da usare nella pagina
+const cities = [
+  "Roma",
+  "Milano",
+  "Napoli",
+  "Torino",
+  "Palermo",
+  "Genova",
+  "Bologna",
+  "Firenze",
+  "Bari",
+  "Catania",
+  "Venezia",
+  "Verona",
+  "Messina",
+  "Padova",
+  "Trieste",
+  "Taranto",
+  "Brescia",
+  "Prato",
+  "Reggio Calabria",
+  "Modena",
+  "Cagliari",
+  "Parma",
+  "Livorno",
+  "Foggia",
+  "Perugia",
+  "Salerno",
+  "Ravenna",
+  "Ferrara",
+  "Sassari",
+];
+
+const getWeatherBgByIcon = (icon) => {
+  if (!icon) return cloud;
+  const group = icon.slice(0, 2);
+  switch (group) {
+    case "01":
+      return sunny;
+    case "02":
+    case "03":
+    case "04":
+      return cloud;
+    case "09":
+    case "10":
+    case "11":
+      return rain;
+    case "13":
+      return snow;
+    default:
+      return cloud;
+  }
+};
 
 const Home = () => {
-  const [weatherList, setWeatherList] = useState([]); // Meteo delle città
-  const [myWeather, setMyWeather] = useState(null); // Meteo della posizione dell'utente
-  const [locationError, setLocationError] = useState(null); // Errore se la posizione non è disponibile
-  const [backgroundImage, setBackgroundImage] = useState(""); // Immagine di sfondo
-  const [loading, setLoading] = useState(true); // Mostra un loader
-  const [isLoaded, setIsLoaded] = useState(false); // Fa capire se l'immagine di sfondo è caricata
+  const [weatherList, setWeatherList] = useState([]);
+  const [batchIndex, setBatchIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  // Qui monto il componente
-  // Sceglie un'immagine casuale
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * images.length);
-    const imageUrl = images[randomIndex];
+  const [myWeather, setMyWeather] = useState(null);
+  const [locationError, setLocationError] = useState(null);
 
-    const img = new Image();
-    // pre-carica l'immagine
-    img.onload = () => {
-      setBackgroundImage(imageUrl);
-      // quando è pronta imposta lo sfondo e ci dice che è loaded
-      setIsLoaded(true);
-    };
-    img.src = imageUrl;
-  }, []);
-
-  // Caricamento meteo della posizione dell'utente
-  useEffect(() => {
-    const cachedMyWeather = localStorage.getItem("myWeather"); // provo a caricare il meteo salvato nel localeStorage
-    if (cachedMyWeather) {
-      setMyWeather(JSON.parse(cachedMyWeather));
-    }
-
-    // Ottengo la posizione attuale
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            const weatherData = {
-              name: data.name,
-              temp: data.main.temp,
-              description: data.weather[0].description,
-              icon: data.weather[0].icon,
-            };
-            setMyWeather(weatherData);
-            localStorage.setItem("myWeather", JSON.stringify(weatherData));
-          })
-          .catch(() => setLocationError("Errore nel recupero del meteo."));
-      },
-      () => setLocationError("Posizione non disponibile.")
+  // Carica batch di città con caching
+  const loadBatch = async (index) => {
+    setLoading(true);
+    const batchCities = cities.slice(
+      index * BATCH_SIZE,
+      (index + 1) * BATCH_SIZE
     );
-  }, []);
+    const cacheKey = `weatherBatch_${index}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.timestamp < CACHE_DURATION) {
+        setWeatherList((prev) => [...prev, ...parsed.data]);
+        setLoading(false);
+        return;
+      }
+    }
 
-  // Caricamento meteo delle città principali
-  useEffect(() => {
-    const cachedWeather = localStorage.getItem("weatherList");
-    if (cachedWeather) {
-      setWeatherList(JSON.parse(cachedWeather));
-      setLoading(false);
-    } else {
-      const fetchData = () => {
-        const requests = cities.map((city) =>
-          fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
-          )
-            .then((res) => res.json())
-            .then((data) => ({
-              name: city,
-              temp: data.main.temp,
-              description: data.weather[0].description,
-              icon: data.weather[0].icon,
-            }))
-            .catch(() => ({
-              name: city,
-              error: "Errore nel caricamento",
-            }))
+    try {
+      const promises = batchCities.map(async (city) => {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=it`
         );
+        const data = await res.json();
+        if (res.ok) {
+          return {
+            name: city,
+            temp: data.main.temp,
+            description: data.weather[0].description,
+            main: data.weather[0].main,
+            icon: data.weather[0].icon,
+          };
+        } else {
+          return {
+            name: city,
+            error: data.message || "Errore nel caricamento",
+          };
+        }
+      });
+      const results = await Promise.all(promises);
+      setWeatherList((prev) => [...prev, ...results]);
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({ data: results, timestamp: Date.now() })
+      );
+    } catch (error) {
+      console.error("Errore fetch batch meteo", error);
+    }
+    setLoading(false);
+  };
 
-        Promise.all(requests).then((results) => {
-          setWeatherList(results);
-          localStorage.setItem("weatherList", JSON.stringify(results));
-          setLoading(false);
-        });
-      };
+  useEffect(() => {
+    loadBatch(batchIndex);
+  }, [batchIndex]);
 
-      fetchData();
+  // Meteo posizione utente
+  useEffect(() => {
+    const fetchUserWeather = async (lat, lon) => {
+      try {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=it`
+        );
+        const data = await res.json();
+        if (res.ok) {
+          setMyWeather({
+            name: data.name,
+            temp: data.main.temp,
+            description: data.weather[0].description,
+            main: data.weather[0].main,
+            icon: data.weather[0].icon,
+          });
+        } else {
+          setLocationError(data.message || "Errore nel recupero del meteo.");
+        }
+      } catch {
+        setLocationError("Errore nel recupero del meteo.");
+      }
+    };
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => fetchUserWeather(pos.coords.latitude, pos.coords.longitude),
+        () => setLocationError("Posizione non disponibile.")
+      );
+    } else {
+      setLocationError("Geolocalizzazione non supportata dal browser.");
     }
   }, []);
+
+  const canLoadMore = (batchIndex + 1) * BATCH_SIZE < cities.length;
 
   return (
     <div
       style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundColor: isLoaded ? "transparent" : "#f0f0f0",
+        minHeight: "100vh",
+        backgroundImage: `url(${meteo})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "100vh",
         color: "white",
+        paddingTop: "2rem",
+        paddingBottom: "2rem",
       }}
     >
-      {isLoaded ? (
-        <div className="container mt-2">
-          <h1 className="text-center mb-4 text-white">
-            Meteo delle principali città
-          </h1>
+      <div className="container bg-dark bg-opacity-50 rounded p-3">
+        <h1 className="text-center mb-4">Meteo Italia e la tua posizione</h1>
 
-          {myWeather && (
-            <div className="alert text-white text-center bg-dark bg-opacity-50 rounded">
-              <h4>Meteo della tua posizione: {myWeather.name}</h4>
+        {/* Meteo utente */}
+        {myWeather && (
+          <div
+            className="alert text-center mb-4 rounded"
+            style={{
+              backgroundImage: `url(${getWeatherBgByIcon(myWeather.icon)})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              position: "relative",
+              overflow: "hidden",
+              color: "white",
+            }}
+          >
+            {/* overlay scuro per il testo */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))",
+              }}
+            />
+            <div style={{ position: "relative" }}>
+              <h4 className="mb-2">{`Meteo attuale a ${myWeather.name}`}</h4>
               <img
-                src={`http://openweathermap.org/img/wn/${myWeather.icon}@2x.png`}
+                src={`https://openweathermap.org/img/wn/${myWeather.icon}@4x.png`}
                 alt={myWeather.description}
+                style={{ width: "100px", height: "100px" }}
               />
-              <p>
-                {Math.round(myWeather.temp - 273.15)}°C -{" "}
-                {myWeather.description}
+              <p style={{ fontSize: "1.5rem", textTransform: "capitalize" }}>
+                {Math.round(myWeather.temp)}°C — {myWeather.description}
               </p>
             </div>
-          )}
+          </div>
+        )}
 
-          {locationError && (
-            <div className="alert alert-warning text-center">
-              {locationError}
-            </div>
-          )}
+        {locationError && (
+          <div className="alert alert-warning text-center">{locationError}</div>
+        )}
 
-          {loading ? (
-            <div className="text-center text-white mt-5">
-              <div className="spinner-border text-light" role="status" />
-              <p className="mt-2">Caricamento meteo...</p>
-            </div>
-          ) : (
-            <div className="row">
-              {weatherList.map((cityData, index) => (
-                <div className="col-md-4 mb-3" key={index}>
-                  <div className="card text-center custom-card">
-                    <div className="card-body">
-                      <h5 className="card-title">{cityData.name}</h5>
-                      {cityData.error ? (
-                        <p>{cityData.error}</p>
-                      ) : (
-                        <>
-                          <img
-                            src={`http://openweathermap.org/img/wn/${cityData.icon}@2x.png`}
-                            alt={cityData.description}
-                          />
-                          <p>{Math.round(cityData.temp - 273.15)}°C</p>
-                          <p>{cityData.description}</p>
-                          <Link
-                            to={`/meteo/${cityData.name}`}
-                            className="btn btn-primary"
-                          >
-                            View
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  </div>
+        {/* Lista città */}
+        <div className="row">
+          {weatherList.map((cityData, idx) => (
+            <div className="col-md-4 mb-3" key={idx}>
+              <div
+                className="card text-center"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  color: "white",
+                  borderRadius: "10px",
+                }}
+              >
+                <div className="card-body">
+                  <h5 className="card-title">{cityData.name}</h5>
+                  {cityData.error ? (
+                    <p>{cityData.error}</p>
+                  ) : (
+                    <>
+                      <img
+                        src={`https://openweathermap.org/img/wn/${cityData.icon}@2x.png`}
+                        alt={cityData.description}
+                      />
+                      <p style={{ fontSize: "1.2rem", margin: "0" }}>
+                        {Math.round(cityData.temp)}°C
+                      </p>
+                      <p style={{ textTransform: "capitalize" }}>
+                        {cityData.description}
+                      </p>
+                      <Link
+                        to={`/meteo/${cityData.name}`}
+                        className="btn btn-primary"
+                      >
+                        Dettagli
+                      </Link>
+                    </>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          ))}
         </div>
-      ) : (
-        <div className="loading-screen text-center text-black">
-          Caricamento...
-        </div>
-      )}
+
+        {/* Bottone carica altro */}
+        {canLoadMore && (
+          <div className="text-center mt-3">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setBatchIndex(batchIndex + 1)}
+              disabled={loading}
+            >
+              {loading ? "Caricamento..." : "Carica altre città"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
