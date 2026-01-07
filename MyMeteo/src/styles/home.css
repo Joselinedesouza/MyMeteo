@@ -22,19 +22,12 @@
 html,
 body {
   height: 100%;
-  overflow: hidden; /* ✅ no scroll desktop */
+  overflow: hidden;
 }
 
 body {
-  margin: 0;
-  background: radial-gradient(
-      1200px 800px at 20% 0%,
-      #1a2b57 0%,
-      transparent 55%
-    ),
-    radial-gradient(1000px 700px at 80% 10%, #2b5c86 0%, transparent 55%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-2));
-  color: var(--text);
+  background: linear-gradient(135deg, #60a2dd 0%, #87c9fc 50%, #b8ddff 100%);
+  color: #0b1c2d;
 }
 
 /* =========================
@@ -42,7 +35,7 @@ body {
 ========================= */
 .home {
   position: relative;
-  height: 100vh; /* ✅ fissa */
+  height: 100vh;
   display: flex;
   background-size: cover;
   background-position: center;
@@ -66,7 +59,7 @@ body {
   position: relative;
   z-index: 1;
 
-  /* ✅ layout che non scrolla */
+  /*  non scroll */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -99,6 +92,83 @@ body {
   font-size: 0.95rem;
   color: var(--muted);
 }
+.city-search {
+  position: relative; /* 🔥 fondamentale */
+  width: 100%;
+  max-width: 420px;
+  margin: 12px auto 0;
+}
+
+.city-search-bar {
+  position: relative;
+}
+
+.city-search input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  outline: none;
+}
+
+/* loading icon dentro input */
+.city-search-loading {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+
+.city-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 14px;
+  background: (rgba(113, 118, 128, 0.92) transparent 90%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  max-height: none;
+  overflow: visible;
+}
+
+.city-search-results li {
+  margin: 0;
+  padding: 0;
+}
+
+.city-search-results li button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.city-search-results li button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.city-search-results li button span {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-top: 2px;
+}
 
 /* =========================
    GLASS CARD (base)
@@ -120,7 +190,6 @@ body {
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.4);
 }
 
-/* Layout interno card "posizione" */
 .glass-row {
   display: flex;
   justify-content: space-between;
@@ -128,12 +197,11 @@ body {
   gap: 16px;
 }
 
-/* ✅ Card posizione più bassa */
 .glass-card--wide {
   padding: 8px 10px;
-  min-height: 82px; /* ✅ più bassa */
-  max-height: 92px; /* ✅ evita che cresca */
-  overflow: hidden; /* ✅ non sfora mai */
+  min-height: 82px;
+  max-height: 92px;
+  overflow: hidden;
 }
 .glass-card--wide p {
   margin: 1px 0 0;
@@ -141,7 +209,7 @@ body {
 
 .glass-card--wide .card-temp {
   margin-top: 6px;
-  font-size: 1.8rem; /* prima era grande */
+  font-size: 1.8rem;
 }
 
 /* testo dentro */
@@ -155,9 +223,9 @@ body {
    WRAPPER GRIGLIA (chiave no-scroll)
 ========================= */
 .cities-wrapper {
-  flex: 1; /* ✅ prende lo spazio rimanente */
+  flex: 1;
   display: flex;
-  min-height: 0; /* ✅ evita overflow in flex */
+  min-height: 0;
 }
 
 /* =========================

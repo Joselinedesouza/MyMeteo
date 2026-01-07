@@ -41,7 +41,7 @@ export default function HomePage() {
 
       <footer className="app-footer">
         © 2025 · Created by <strong>JoselineDeSouza</strong> for{" "}
-        <strong>Epicode</strong>
+        <strong> Epicode</strong>
       </footer>
     </div>
   );

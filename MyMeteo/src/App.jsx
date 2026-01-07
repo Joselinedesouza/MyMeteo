@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "./pages/HomePage"; // o HomePage, dipende dal tuo nome file
+import HomePage from "./pages/HomePage";
+import WeatherPage from "./pages/WeatherPage";
 import MeteoPage from "./pages/MeteoPage";
 
 const App = () => {
@@ -7,6 +8,7 @@ const App = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/meteo/:city" element={<MeteoPage />} />
+      <Route path="/city/:slug" element={<WeatherPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
