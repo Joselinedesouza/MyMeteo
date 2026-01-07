@@ -1,0 +1,635 @@
+/* =========================
+   RESET / BASE
+========================= */
+:root {
+  --bg-1: #0b1220;
+  --bg-2: #101a2f;
+
+  --glass: rgba(255, 255, 255, 0.1);
+  --glass-strong: rgba(255, 255, 255, 0.14);
+  --border: rgba(255, 255, 255, 0.18);
+
+  --text: rgba(255, 255, 255, 0.95);
+  --muted: rgba(255, 255, 255, 0.72);
+
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* ✅ no scroll desktop */
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(
+      1200px 800px at 20% 0%,
+      #1a2b57 0%,
+      transparent 55%
+    ),
+    radial-gradient(1000px 700px at 80% 10%, #2b5c86 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  color: var(--text);
+}
+
+/* =========================
+   HOME WRAPPER
+========================= */
+.home {
+  position: relative;
+  height: 100vh; /* ✅ fissa */
+  display: flex;
+  background-size: cover;
+  background-position: center;
+  color: var(--text);
+}
+
+.home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      900px 500px at 30% 0%,
+      rgba(0, 0, 0, 0.25),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75));
+  backdrop-filter: blur(2px);
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+
+  /* ✅ layout che non scrolla */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* più compatto del container bootstrap */
+  padding: 16px 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* =========================
+   HEADER (compatto)
+========================= */
+.home-header {
+  text-align: center;
+  margin: 0;
+}
+
+.home-title {
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  margin: 0 0 4px;
+}
+
+.home-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* =========================
+   GLASS CARD (base)
+========================= */
+.glass-card {
+  background: linear-gradient(180deg, var(--glass-strong), var(--glass));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  padding: 18px;
+  transition: transform 160ms ease, box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.4);
+}
+
+/* Layout interno card "posizione" */
+.glass-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ✅ Card posizione più bassa */
+.glass-card--wide {
+  padding: 8px 10px;
+  min-height: 82px; /* ✅ più bassa */
+  max-height: 92px; /* ✅ evita che cresca */
+  overflow: hidden; /* ✅ non sfora mai */
+}
+.glass-card--wide p {
+  margin: 1px 0 0;
+}
+
+.glass-card--wide .card-temp {
+  margin-top: 6px;
+  font-size: 1.8rem; /* prima era grande */
+}
+
+/* testo dentro */
+.glass-desc {
+  margin-top: 8px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+/* =========================
+   WRAPPER GRIGLIA (chiave no-scroll)
+========================= */
+.cities-wrapper {
+  flex: 1; /* ✅ prende lo spazio rimanente */
+  display: flex;
+  min-height: 0; /* ✅ evita overflow in flex */
+}
+
+/* =========================
+   GRID
+========================= */
+.grid {
+  flex: 1;
+  display: grid;
+  gap: 12px;
+
+  /* desktop: 3 colonne, 2 righe (6 città) */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+}
+
+/* =========================
+   ICONS (generiche)
+========================= */
+.owm-icon {
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+  opacity: 0.98;
+}
+
+/* =========================
+   BUTTON (generico)
+========================= */
+.btn-soft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform 150ms ease, background 150ms ease,
+    border-color 150ms ease;
+}
+
+.btn-soft:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================
+   LOADER
+========================= */
+.loading-block {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.spinner-border {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+/* =========================
+   ALERT FIX (bootstrap)
+========================= */
+.alert {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+}
+
+/* =========================
+   WEATHER CARD (premium) - WCARD
+========================= */
+.wcard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.08)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  transition: transform 180ms ease, box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.wcard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+}
+
+.wcard__shine {
+  position: absolute;
+  inset: -80px -120px auto auto;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.22),
+    transparent 60%
+  );
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+
+.wcard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wcard__city {
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.wcard__pill {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-transform: capitalize;
+}
+
+.wcard__icon {
+  width: 58px;
+  height: 58px;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+  opacity: 0.98;
+}
+
+.wcard__mid {
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wcard__temp {
+  font-weight: 950;
+  font-size: 1.95rem;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.wcard__temp--cold {
+  color: rgba(180, 225, 255, 0.95);
+  text-shadow: 0 10px 24px rgba(100, 190, 255, 0.25);
+}
+
+.wcard__temp--mild {
+  color: rgba(235, 245, 255, 0.95);
+  text-shadow: 0 10px 24px rgba(255, 255, 255, 0.12);
+}
+
+.wcard__temp--hot {
+  color: rgba(255, 210, 170, 0.95);
+  text-shadow: 0 10px 24px rgba(255, 160, 90, 0.18);
+}
+
+.wcard__temp--neutral {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wcard__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.wcard__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.wcard__footer {
+  margin-top: 10px;
+}
+
+.wcard__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: transform 160ms ease, background 160ms ease,
+    border-color 160ms ease;
+}
+
+.wcard__btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.wcard__arrow {
+  font-size: 1.05rem;
+  opacity: 0.9;
+}
+
+/* Error variant */
+.wcard--error .wcard__desc {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.wcard__badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.wcard__hint {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* =========================
+   RESPONSIVE: Mobile torna scroll
+========================= */
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow: auto; /* ✅ su mobile serve */
+  }
+
+  .home {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .home-content {
+    padding: 14px 14px 18px;
+  }
+
+  .cities-wrapper {
+    flex: unset;
+  }
+
+  .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-rows: unset;
+  }
+}
+/* =========================
+   DETAIL PAGE (stesso tema home)
+========================= */
+.detail {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 18px 18px 28px;
+}
+
+.detail__content {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.detail__back {
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: transform 160ms ease, background 160ms ease;
+  margin-bottom: 14px;
+}
+
+.detail__back:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.detail-card {
+  padding: 18px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-title {
+  margin: 0;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.detail-pill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: capitalize;
+}
+
+.detail-temp {
+  font-size: clamp(3rem, 6vw, 4.6rem);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.detail-temp span {
+  font-size: 0.55em;
+  opacity: 0.9;
+}
+
+.detail-sub {
+  color: var(--muted);
+}
+
+.detail-iconWrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.detail-icon {
+  width: 180px; /* ✅ evita icona gigante */
+  height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.45));
+}
+
+.detail-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.detail-stat {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.cap {
+  text-transform: capitalize;
+}
+
+.detail-actions {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-iconWrap {
+    justify-content: center;
+  }
+
+  .detail-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-icon {
+    width: 150px;
+    height: 150px;
+  }
+}
+/* ===== Footer: spazio riservato, non taglia le card ===== */
+:root {
+  --footer-h: 44px; /* altezza footer */
+}
+
+/* home-content deve distribuire gli spazi */
+.home-content {
+  padding-bottom: 12px; /* piccolo respiro */
+}
+
+/* wrapper griglia: sottrai lo spazio del footer */
+.cities-wrapper {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: var(--footer-h); /* ✅ spazio per il footer */
+}
+
+/* footer “ancorato” in basso senza rubare spazio alle card */
+.app-footer {
+  height: var(--footer-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0; /* niente margini che spingono */
+  margin-bottom: 0;
+  position: absolute; /* ✅ si appoggia in basso */
+  left: 20px;
+  right: 20px;
+  bottom: 12px;
+}
+
+/* per far funzionare position:absolute del footer */
+.home {
+  position: relative;
+}
